@@ -77,7 +77,7 @@ public class NoteController {
     @GetMapping("/{id}/stats")
     public ResponseEntity<Map<String, Long>> getNoteStatistics(@PathVariable String id) {
         String text = noteService.getTextById(id)
-                .map(NoteTextDto::getText)   // витягуємо текст з DTO
+                .map(NoteTextDto::getText)
                 .orElseThrow(() ->
                         new ResponseStatusException(HttpStatus.NOT_FOUND, "Note not found with id: " + id));
 
