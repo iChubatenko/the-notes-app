@@ -1,9 +1,6 @@
 package com.thenotesapp.api.controller;
 
-import com.thenotesapp.api.dto.CreateNoteDto;
-import com.thenotesapp.api.dto.NoteDetailDto;
-import com.thenotesapp.api.dto.NoteSummaryDto;
-import com.thenotesapp.api.dto.UpdateNoteDto;
+import com.thenotesapp.api.dto.*;
 import com.thenotesapp.api.model.NoteTag;
 import com.thenotesapp.api.service.NoteService;
 import jakarta.validation.Valid;
@@ -30,13 +27,13 @@ public class NoteController {
     }
 
     @PostMapping
-    public ResponseEntity<NoteDetailDto> createNote(@Valid @RequestBody CreateNoteDto createDto) {
-        NoteDetailDto createdNote = noteService.create(createDto);
+    public ResponseEntity<NoteDetailDto> createNote(@Valid @RequestBody CreateNoteDto dto) {
+        NoteDetailDto createdNote = noteService.create(dto);
         return new ResponseEntity<>(createdNote, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<NoteDetailDto> updateNote(@PathVariable String id, @Valid @RequestBody UpdateNoteDto dto) {
+    public ResponseEntity<NoteDetailDto> updateNote(@PathVariable String id, @Valid @RequestBody CreateNoteDto dto) {
         NoteDetailDto updatedNote = noteService.update(id, dto);
         return ResponseEntity.ok(updatedNote);
     }
@@ -52,10 +49,19 @@ public class NoteController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<NoteDetailDto> getNoteById(@PathVariable String id) {
+    public ResponseEntity<NoteSummaryDto> getNoteById(@PathVariable String id) {
         return noteService.getById(id)
                 .map(ResponseEntity::ok)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Note not found with id: " + id));
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "Note not found with id: " + id));
+    }
+
+    @GetMapping("/{id}/text")
+    public ResponseEntity<Map<String, String>> getNoteText(@PathVariable String id) {
+        return noteService.getTextById(id)
+                .map(text -> ResponseEntity.ok(Map.of("text", text)))
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "Note not found with id: " + id));
     }
 
     @GetMapping
@@ -70,9 +76,11 @@ public class NoteController {
 
     @GetMapping("/{id}/stats")
     public ResponseEntity<Map<String, Long>> getNoteStatistics(@PathVariable String id) {
-        NoteDetailDto note = noteService.getById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Note not found with id: " + id));
-        Map<String, Long> stats = noteService.getNoteStatistics(note.getText());
+        String text = noteService.getTextById(id)
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "Note not found with id: " + id));
+
+        Map<String, Long> stats = noteService.getNoteStatistics(text);
         return ResponseEntity.ok(stats);
     }
 }

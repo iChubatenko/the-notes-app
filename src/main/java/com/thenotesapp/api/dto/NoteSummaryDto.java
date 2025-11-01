@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class NoteSummaryDto {
 
+    //kept id field just for simplified testing
     private String id;
     @NotBlank(message = "Title cannot be empty")
     @Indexed

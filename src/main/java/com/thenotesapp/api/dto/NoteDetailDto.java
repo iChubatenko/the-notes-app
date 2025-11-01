@@ -13,6 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 public class NoteDetailDto {
 
+    //kept id field just for simplified testing
     private String id;
     @NotBlank(message = "Title cannot be empty")
     @Indexed

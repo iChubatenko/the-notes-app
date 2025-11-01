@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thenotesapp.api.dto.CreateNoteDto;
 import com.thenotesapp.api.dto.NoteDetailDto;
 import com.thenotesapp.api.dto.NoteSummaryDto;
-import com.thenotesapp.api.dto.UpdateNoteDto;
 import com.thenotesapp.api.model.Note;
 import com.thenotesapp.api.model.NoteTag;
 import com.thenotesapp.api.repository.NoteRepository;
@@ -36,13 +35,13 @@ public class NoteService {
         return objectMapper.convertValue(saved, NoteDetailDto.class);
     }
 
-    public NoteDetailDto update(String id, UpdateNoteDto updateDto) {
+    public NoteDetailDto update(String id, CreateNoteDto createNoteDto) {
         Note existing = noteRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Note not found"));
 
-        if (updateDto.getTitle() != null) existing.setTitle(updateDto.getTitle());
-        if (updateDto.getText() != null) existing.setText(updateDto.getText());
-        if (updateDto.getTags() != null) existing.setTags(updateDto.getTags());
+        existing.setTitle(createNoteDto.getTitle());
+        existing.setText(createNoteDto.getText());
+        existing.setTags(createNoteDto.getTags());
 
         Note updated = noteRepository.save(existing);
         return objectMapper.convertValue(updated, NoteDetailDto.class);
@@ -55,9 +54,18 @@ public class NoteService {
         noteRepository.deleteById(id);
     }
 
-    public Optional<NoteDetailDto> getById(String id) {
+    public Optional<NoteSummaryDto> getById(String id) {
         return noteRepository.findById(id)
-                .map(note -> objectMapper.convertValue(note, NoteDetailDto.class));
+                .map(note -> new NoteSummaryDto(
+                        note.getId(),
+                        note.getTitle(),
+                        note.getCreatedDate()
+                ));
+    }
+
+    public Optional<String> getTextById(String id) {
+        return noteRepository.findById(id)
+                .map(Note::getText);
     }
 
     public Page<NoteSummaryDto> listNotes(List<NoteTag> tags, int page, int size) {
