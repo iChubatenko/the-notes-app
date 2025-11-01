@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thenotesapp.api.dto.CreateNoteDto;
 import com.thenotesapp.api.dto.NoteDetailDto;
 import com.thenotesapp.api.dto.NoteSummaryDto;
+import com.thenotesapp.api.dto.NoteTextDto;
 import com.thenotesapp.api.model.Note;
 import com.thenotesapp.api.model.NoteTag;
 import com.thenotesapp.api.repository.NoteRepository;
@@ -63,22 +64,22 @@ public class NoteService {
                 ));
     }
 
-    public Optional<String> getTextById(String id) {
+    public Optional<NoteTextDto> getTextById(String id) {
         return noteRepository.findById(id)
-                .map(Note::getText);
+                .map(note -> new NoteTextDto(note.getText()));
     }
 
     public Page<NoteSummaryDto> listNotes(List<NoteTag> tags, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDate"));
+        Page<Note> notesPage = (tags == null || tags.isEmpty())
+                ? noteRepository.findAll(pageable)
+                : noteRepository.findByTagsIn(tags, pageable);
 
-        Page<Note> notesPage;
-        if (tags != null && !tags.isEmpty()) {
-            notesPage = noteRepository.findByTagsIn(tags, pageable);
-        } else {
-            notesPage = noteRepository.findAll(pageable);
-        }
-
-        return notesPage.map(note -> objectMapper.convertValue(note, NoteSummaryDto.class));
+        return notesPage.map(note -> new NoteSummaryDto(
+                note.getId(),
+                note.getTitle(),
+                note.getCreatedDate()
+        ));
     }
 
     public Map<String, Long> getNoteStatistics(String text) {
