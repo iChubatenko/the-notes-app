@@ -1,0 +1,14 @@
+spring:
+  data:
+    mongodb:
+      host: mongo
+      port: 27017
+      database: notes_db
+      username: root
+      password: rootpassword
+      authentication-database: admin
+server:
+  port: 8080
+logging:
+  level:
+    root: info
